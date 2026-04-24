@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Based Fake News Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="card">
+            <div class="header">
+                <p class="eyebrow">Machine Learning Flask Project</p>
+                <h1>AI-Based Fake News Detection System</h1>
+                <p class="subtitle">
+                    Paste a news article, headline, or paragraph to predict whether it looks REAL or FAKE.
+                </p>
+            </div>
+
+            <div class="input-section">
+                <label for="newsText">Enter news text</label>
+                <p class="helper-text">Tip: add at least one full sentence for a more reliable prediction.</p>
+                <textarea id="newsText" placeholder="Type or paste the news content here..."></textarea>
+                <div class="action-row">
+                    <button id="predictBtn">Verify News</button>
+                    <span id="statusMessage" class="status-message" aria-live="polite"></span>
+                </div>
+            </div>
+
+            <div id="resultBox" class="result-box hidden">
+                <h2>Verification Result</h2>
+                <p><strong>Final Verdict:</strong> <span id="predictionText">-</span></p>
+                <p id="finalMessage" class="validation-message">-</p>
+                <p><strong>Final Confidence:</strong> <span id="confidenceText">-</span></p>
+                <div class="confidence-bar">
+                    <div id="confidenceFill" class="confidence-fill"></div>
+                </div>
+                <p><strong>Search Query:</strong> <span id="validationQuery">-</span></p>
+                <h3>Checked Sources</h3>
+                <div id="sourceList" class="source-list">
+                    <p class="empty-state">No sources checked yet.</p>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <div class="section-head">
+                    <h2>Prediction History</h2>
+                    <div class="history-actions">
+                        <button id="refreshHistoryBtn" class="secondary-btn" type="button">Refresh</button>
+                        <button id="clearHistoryBtn" class="danger-btn" type="button">Clear History</button>
+                    </div>
+                </div>
+                <div id="statsGrid" class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Total</span>
+                        <strong id="totalCount">0</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">REAL</span>
+                        <strong id="realCount">0</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">FAKE</span>
+                        <strong id="fakeCount">0</strong>
+                    </div>
+                </div>
+                <div id="historyList" class="history-list">
+                    <p class="empty-state">No predictions yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
