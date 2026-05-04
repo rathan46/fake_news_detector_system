@@ -9,8 +9,27 @@
 <body>
     <div class="page-wrapper">
         <div class="card">
+            <div class="topbar">
+                <div>
+                    <p class="eyebrow">Machine Learning Flask Project</p>
+                    <p class="welcome-text">Signed in as {{ user.full_name }} ({{ user.email }})</p>
+                </div>
+                <form action="{{ url_for('logout') }}" method="post" class="logout-form">
+                    <button type="submit" class="secondary-btn">Log Out</button>
+                </form>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-stack">
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
             <div class="header">
-                <p class="eyebrow">Machine Learning Flask Project</p>
                 <h1>AI-Based Fake News Detection System</h1>
                 <p class="subtitle">
                     Paste a news article, headline, or paragraph to predict whether it looks REAL or FAKE.
@@ -36,6 +55,9 @@
                     <div id="confidenceFill" class="confidence-fill"></div>
                 </div>
                 <p><strong>Search Query:</strong> <span id="validationQuery">-</span></p>
+                <button id="downloadReportBtn" class="secondary-btn" type="button" disabled>
+                    Download Report
+                </button>
                 <h3>Checked Sources</h3>
                 <div id="sourceList" class="source-list">
                     <p class="empty-state">No sources checked yet.</p>

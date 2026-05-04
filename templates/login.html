@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | AI Fake News Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="page-wrapper auth-page">
+        <div class="auth-card">
+            <p class="eyebrow">Secure Access</p>
+            <h1>Welcome back</h1>
+            <p class="subtitle">
+                Sign in to verify news, save your prediction history, and download reports.
+            </p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-stack">
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" class="auth-form">
+                <label for="email">Email address</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value="{{ request.form.get('email', '') }}"
+                    required
+                >
+
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    required
+                >
+
+                <button type="submit">Log In</button>
+            </form>
+
+            <p class="auth-switch">
+                New here?
+                <a href="{{ url_for('register') }}">Create an account</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

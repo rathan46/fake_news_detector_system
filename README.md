@@ -105,3 +105,4 @@ You can copy the included `.env.example` file and replace the placeholder value 
 
 - `REAL`
 - `FAKE`
+

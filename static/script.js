@@ -2,6 +2,7 @@ const newsText = document.getElementById("newsText");
 const predictBtn = document.getElementById("predictBtn");
 const refreshHistoryBtn = document.getElementById("refreshHistoryBtn");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+const downloadReportBtn = document.getElementById("downloadReportBtn");
 const resultBox = document.getElementById("resultBox");
 const predictionText = document.getElementById("predictionText");
 const finalMessage = document.getElementById("finalMessage");
@@ -14,6 +15,11 @@ const statusMessage = document.getElementById("statusMessage");
 const totalCount = document.getElementById("totalCount");
 const realCount = document.getElementById("realCount");
 const fakeCount = document.getElementById("fakeCount");
+let latestReportPayload = null;
+
+function redirectToLogin() {
+    window.location.href = "/login";
+}
 
 function escapeHtml(text) {
     const div = document.createElement("div");
@@ -85,6 +91,10 @@ async function loadHistory() {
     try {
         setStatus("Loading history...");
         const response = await fetch("/history?limit=20");
+        if (response.status === 401) {
+            redirectToLogin();
+            return;
+        }
         const payload = await response.json();
         renderHistory(payload.items || []);
         renderStats(payload.stats || {});
@@ -116,6 +126,10 @@ async function predictNews() {
             },
             body: JSON.stringify({ news_text: text }),
         });
+        if (response.status === 401) {
+            redirectToLogin();
+            return;
+        }
 
         const result = await response.json();
 
@@ -141,6 +155,11 @@ async function predictNews() {
               : "uncertain";
         resultBox.classList.add(verdictClass);
         renderSources(result.verification?.sources || []);
+        latestReportPayload = {
+            news_text: text,
+            verification: result.verification,
+        };
+        downloadReportBtn.disabled = false;
 
         renderHistory(result.history);
         renderStats(result.stats || {});
@@ -150,6 +169,52 @@ async function predictNews() {
     } finally {
         predictBtn.disabled = false;
         predictBtn.textContent = "Verify News";
+    }
+}
+
+async function downloadReport() {
+    if (!latestReportPayload) {
+        setStatus("Please verify news first before downloading a report.", "error");
+        return;
+    }
+
+    downloadReportBtn.disabled = true;
+    downloadReportBtn.textContent = "Preparing PDF...";
+    setStatus("Generating PDF report...");
+
+    try {
+        const response = await fetch("/report", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(latestReportPayload),
+        });
+        if (response.status === 401) {
+            redirectToLogin();
+            return;
+        }
+
+        if (!response.ok) {
+            const errorPayload = await response.json();
+            throw new Error(errorPayload.error || "Could not generate PDF report.");
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "news_verification_report.pdf";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.URL.revokeObjectURL(url);
+        setStatus("PDF report downloaded.", "success");
+    } catch (error) {
+        setStatus(error.message, "error");
+    } finally {
+        downloadReportBtn.disabled = false;
+        downloadReportBtn.textContent = "Download Report";
     }
 }
 
@@ -171,6 +236,10 @@ async function clearHistory() {
                 "Content-Type": "application/json",
             },
         });
+        if (response.status === 401) {
+            redirectToLogin();
+            return;
+        }
 
         const result = await response.json();
 
@@ -192,6 +261,7 @@ async function clearHistory() {
 predictBtn.addEventListener("click", predictNews);
 refreshHistoryBtn.addEventListener("click", loadHistory);
 clearHistoryBtn.addEventListener("click", clearHistory);
+downloadReportBtn.addEventListener("click", downloadReport);
 newsText.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         predictNews();
