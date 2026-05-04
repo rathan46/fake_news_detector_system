@@ -8,6 +8,7 @@ const predictionText = document.getElementById("predictionText");
 const finalMessage = document.getElementById("finalMessage");
 const confidenceText = document.getElementById("confidenceText");
 const confidenceFill = document.getElementById("confidenceFill");
+const keywordList = document.getElementById("keywordList");
 const validationQuery = document.getElementById("validationQuery");
 const sourceList = document.getElementById("sourceList");
 const historyList = document.getElementById("historyList");
@@ -16,6 +17,16 @@ const totalCount = document.getElementById("totalCount");
 const realCount = document.getElementById("realCount");
 const fakeCount = document.getElementById("fakeCount");
 let latestReportPayload = null;
+
+function getVerdictClass(verdict) {
+    if (verdict === "REAL" || verdict === "SUPPORTED") {
+        return "real";
+    }
+    if (verdict === "FAKE" || verdict === "NOT SUPPORTED") {
+        return "fake";
+    }
+    return "uncertain";
+}
 
 function redirectToLogin() {
     window.location.href = "/login";
@@ -35,7 +46,7 @@ function renderHistory(historyItems) {
 
     historyList.innerHTML = historyItems
         .map((item) => {
-            const badgeClass = item.prediction === "REAL" ? "real" : "fake";
+            const badgeClass = getVerdictClass(item.prediction);
             const shortText =
                 item.news_text.length > 180
                     ? `${item.news_text.slice(0, 180)}...`
@@ -45,7 +56,7 @@ function renderHistory(historyItems) {
                 <div class="history-item">
                     <div class="history-meta">
                         <span class="badge ${badgeClass}">${item.prediction}</span>
-                        <span>Confidence: ${item.confidence}%</span>
+                        <span>Match score: ${item.confidence}%</span>
                         <span>${item.created_at}</span>
                     </div>
                     <p class="history-text">${escapeHtml(shortText)}</p>
@@ -72,9 +83,10 @@ function renderSources(sources) {
             return `
                 <a class="source-item" href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">
                     <div class="source-title">${escapeHtml(source.title)}</div>
+                    <p class="source-snippet">${escapeHtml(source.evidence_excerpt || "No article excerpt available.")}</p>
                     <div class="source-meta">
                         <span>${escapeHtml(source.source_name)}</span>
-                        <span>Support: ${source.support_score}</span>
+                        <span>Truth score: ${source.support_score}%</span>
                     </div>
                 </a>
             `;
@@ -115,8 +127,8 @@ async function predictNews() {
     }
 
     predictBtn.disabled = true;
-    predictBtn.textContent = "Verifying...";
-    setStatus("Running AI analysis and checking the web...");
+    predictBtn.textContent = "Comparing...";
+    setStatus("Extracting major keywords and comparing with News API results...");
 
     try {
         const response = await fetch("/predict", {
@@ -138,21 +150,19 @@ async function predictNews() {
         }
 
         const finalVerdict = result.verification?.final_verdict || "UNCERTAIN";
-        const finalConfidence = result.verification?.final_confidence ?? 0;
+        const finalConfidence =
+            result.verification?.match_score ?? result.verification?.final_confidence ?? 0;
 
         predictionText.textContent = finalVerdict;
         finalMessage.textContent =
             result.verification?.final_message || "Verification completed.";
         confidenceText.textContent = `${finalConfidence}%`;
         confidenceFill.style.width = `${Math.max(0, Math.min(100, finalConfidence))}%`;
+        keywordList.textContent = (result.verification?.keywords || []).join(", ") || "Not available";
         validationQuery.textContent = result.verification?.query || "Not available";
-        resultBox.classList.remove("hidden", "real", "fake");
+        resultBox.classList.remove("hidden", "real", "fake", "uncertain");
 
-        const verdictClass = finalVerdict.includes("REAL")
-            ? "real"
-            : finalVerdict.includes("FAKE")
-              ? "fake"
-              : "uncertain";
+        const verdictClass = getVerdictClass(finalVerdict);
         resultBox.classList.add(verdictClass);
         renderSources(result.verification?.sources || []);
         latestReportPayload = {
@@ -163,12 +173,12 @@ async function predictNews() {
 
         renderHistory(result.history);
         renderStats(result.stats || {});
-        setStatus("News verification completed.", "success");
+        setStatus("Keyword-based News API verification completed.", "success");
     } catch (error) {
         setStatus(error.message, "error");
     } finally {
         predictBtn.disabled = false;
-        predictBtn.textContent = "Verify News";
+        predictBtn.textContent = "Compare With News API";
     }
 }
 

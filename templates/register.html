@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register | AI Fake News Detection</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Register | AI Fake News Detection{% endblock %}
+
+{% block body %}
     <div class="page-wrapper auth-page">
         <div class="auth-card">
             <p class="eyebrow">Create Account</p>
@@ -15,17 +11,11 @@
                 Register once to keep your own verification history and access the detector dashboard.
             </p>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-stack">
-                        {% for category, message in messages %}
-                            <div class="flash-message {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+            {% include "partials/flash_messages.html" %}
 
             <form method="post" class="auth-form">
+                <input type="hidden" name="next" value="{{ request.values.get('next', '') }}">
+
                 <label for="full_name">Full name</label>
                 <input
                     id="full_name"
@@ -69,9 +59,8 @@
 
             <p class="auth-switch">
                 Already have an account?
-                <a href="{{ url_for('login') }}">Log in</a>
+                <a href="{{ url_for('login', next=request.values.get('next', '')) }}">Log in</a>
             </p>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}AI Fake News Detection{% endblock %}
+
+{% block body %}
+    <div class="page-wrapper landing-page">
+        <div class="hero-shell">
+            <div class="hero-card">
+                <p class="eyebrow">AI Verification Workspace</p>
+                <h1>Check suspicious news with your own saved dashboard.</h1>
+                <p class="subtitle hero-copy">
+                    Sign in to compare entered news with News API reporting, review matching sources, export reports,
+                    and keep a private prediction history for your account.
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('login') }}" class="button-link primary-link">Log In</a>
+                    <a href="{{ url_for('register') }}" class="button-link secondary-link">Create Account</a>
+                </div>
+            </div>
+
+            <div class="feature-panel">
+                <div class="feature-card">
+                    <h2>What you get</h2>
+                    <ul class="feature-list">
+                        <li>Separate login and registration flow</li>
+                        <li>Your own saved prediction history</li>
+                        <li>Source-backed verification summaries</li>
+                        <li>Downloadable PDF reports</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h2>How it works</h2>
+                    <p>
+                        Paste a headline, paragraph, or article excerpt. The app retrieves News API results,
+                        compares them against your text, and scores how strongly the retrieved reporting supports it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,47 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Based Fake News Detection System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Dashboard | AI Fake News Detection{% endblock %}
+
+{% block body %}
     <div class="page-wrapper">
         <div class="card">
             <div class="topbar">
                 <div>
-                    <p class="eyebrow">Machine Learning Flask Project</p>
+                    <p class="eyebrow">Verification Dashboard</p>
                     <p class="welcome-text">Signed in as {{ user.full_name }} ({{ user.email }})</p>
                 </div>
-                <form action="{{ url_for('logout') }}" method="post" class="logout-form">
-                    <button type="submit" class="secondary-btn">Log Out</button>
-                </form>
+                <div class="topbar-actions">
+                    {% if is_admin %}
+                        <a href="{{ url_for('admin_feedback') }}" class="button-link secondary-link">Admin Feedback</a>
+                    {% endif %}
+                    <form action="{{ url_for('logout') }}" method="post" class="logout-form">
+                        <button type="submit" class="secondary-btn">Log Out</button>
+                    </form>
+                </div>
             </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-stack">
-                        {% for category, message in messages %}
-                            <div class="flash-message {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+            {% include "partials/flash_messages.html" %}
 
             <div class="header">
                 <h1>AI-Based Fake News Detection System</h1>
                 <p class="subtitle">
-                    Paste a news article, headline, or paragraph to predict whether it looks REAL or FAKE.
+                    Paste a news article, headline, or paragraph to compare it against News API coverage and measure how strongly live reporting supports it.
                 </p>
+            </div>
+
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <span class="stat-label">Checks saved</span>
+                    <strong>{{ stats.total_predictions }}</strong>
+                </div>
+                <div class="overview-card">
+                    <span class="stat-label">REAL</span>
+                    <strong>{{ stats.real_count }}</strong>
+                </div>
+                <div class="overview-card">
+                    <span class="stat-label">UNCERTAIN</span>
+                    <strong>{{ stats.uncertain_count }}</strong>
+                </div>
             </div>
 
             <div class="input-section">
                 <label for="newsText">Enter news text</label>
-                <p class="helper-text">Tip: add at least one full sentence for a more reliable prediction.</p>
+                <p class="helper-text">Tip: add at least one full sentence so the app can build a better News API query and compare matching articles.</p>
                 <textarea id="newsText" placeholder="Type or paste the news content here..."></textarea>
                 <div class="action-row">
-                    <button id="predictBtn">Verify News</button>
+                    <button id="predictBtn">Compare With News API</button>
                     <span id="statusMessage" class="status-message" aria-live="polite"></span>
                 </div>
             </div>
@@ -50,10 +58,11 @@
                 <h2>Verification Result</h2>
                 <p><strong>Final Verdict:</strong> <span id="predictionText">-</span></p>
                 <p id="finalMessage" class="validation-message">-</p>
-                <p><strong>Final Confidence:</strong> <span id="confidenceText">-</span></p>
+                <p><strong>Evidence Match Score:</strong> <span id="confidenceText">-</span></p>
                 <div class="confidence-bar">
                     <div id="confidenceFill" class="confidence-fill"></div>
                 </div>
+                <p><strong>Major Keywords:</strong> <span id="keywordList">-</span></p>
                 <p><strong>Search Query:</strong> <span id="validationQuery">-</span></p>
                 <button id="downloadReportBtn" class="secondary-btn" type="button" disabled>
                     Download Report
@@ -66,7 +75,7 @@
 
             <div class="history-section">
                 <div class="section-head">
-                    <h2>Prediction History</h2>
+                    <h2>Verification History</h2>
                     <div class="history-actions">
                         <button id="refreshHistoryBtn" class="secondary-btn" type="button">Refresh</button>
                         <button id="clearHistoryBtn" class="danger-btn" type="button">Clear History</button>
@@ -90,9 +99,40 @@
                     <p class="empty-state">No predictions yet.</p>
                 </div>
             </div>
+
+            <div class="feedback-section">
+                <div class="section-head">
+                    <h2>Share Feedback</h2>
+                </div>
+                <p class="helper-text">
+                    Tell us what worked, what felt confusing, or what you want improved. Your name and email from this account will be included automatically.
+                </p>
+                <form action="{{ url_for('submit_feedback') }}" method="post" class="feedback-form">
+                    <label for="feedbackSubject">Subject</label>
+                    <input
+                        id="feedbackSubject"
+                        name="subject"
+                        type="text"
+                        maxlength="120"
+                        placeholder="Example: Result explanation could be clearer"
+                        required
+                    >
+
+                    <label for="feedbackMessage">Message</label>
+                    <textarea
+                        id="feedbackMessage"
+                        name="message"
+                        class="feedback-textarea"
+                        maxlength="3000"
+                        placeholder="Write your feedback here..."
+                        required
+                    ></textarea>
+
+                    <button type="submit">Send Feedback</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+{% endblock %}

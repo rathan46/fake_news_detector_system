@@ -1,6 +1,6 @@
 # AI-Based Fake News Detection System
 
-This is a beginner-friendly Python Flask project that predicts whether a piece of news text is **REAL** or **FAKE** using a stronger and more reliable machine learning model.
+This is a beginner-friendly Python Flask project that compares a piece of news text against live News API results and scores how strongly the retrieved reporting supports it.
 
 ## Technologies Used
 
@@ -20,15 +20,15 @@ This is a beginner-friendly Python Flask project that predicts whether a piece o
 AI-Based Fake News Detection System/
 |-- app.py
 |-- .env
-|-- .env.example
 |-- train_model.py
+|-- comparison_utils.py
 |-- model.pkl
-|-- vectorizer.pkl
 |-- database.db
 |-- requirements.txt
 |-- README.md
 |-- data/
 |   |-- fake_or_real_news.csv
+|   |-- news_api_comparison_dataset.csv
 |-- templates/
 |   |-- index.html
 |-- static/
@@ -38,58 +38,124 @@ AI-Based Fake News Detection System/
 
 ## Features
 
-- Enter news text on the home page
-- Click the **Verify News** button
-- Get one combined final result using AI analysis and independent web checking
-- View confidence percentage
+- Register and log in to your own dashboard
+- Enter news text on the dashboard
+- Click the **Compare With News API** button
+- Get a final result based only on how well News API reporting matches the entered news
+- View an evidence match score
 - Save every prediction in SQLite history
+- Submit feedback from the dashboard
+- Review feedback in an admin-only panel with user names and emails
 - Show simple prediction statistics
 - Cross-check news online using related internet articles and fetched article content
 - Responsive clean UI
 - Runs on localhost
 
-## Setup Instructions
+## How To Run
 
-1. Install dependencies:
+These steps work in Windows PowerShell from the project folder.
 
-```bash
+1. Open PowerShell in the project directory:
+
+```powershell
+cd E:\FND-V1
+```
+
+2. Create a virtual environment:
+
+```powershell
+python -m venv .venv
+```
+
+3. Activate it:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+4. Install dependencies:
+
+```powershell
 pip install -r requirements.txt
 ```
 
-2. Train the machine learning model:
+5. Create or update the `.env` file in the project root:
 
-```bash
+```env
+NEWS_API_KEY=your_newsapi_key_here
+SECRET_KEY=replace_with_a_long_random_secret
+ADMIN_EMAILS=admin@example.com
+```
+
+6. Train the comparison model:
+
+```powershell
 python train_model.py
 ```
 
-3. Start the Flask application:
+7. Start the Flask app:
 
-```bash
+```powershell
 python app.py
 ```
 
-4. Open the browser and visit:
+8. Open the app in your browser:
 
 ```text
 http://127.0.0.1:5000/
 ```
 
+9. Register a new account or log in, then use the dashboard.
+
+## Quick Rerun
+
+If you already set everything up before, the normal daily workflow is:
+
+```powershell
+cd E:\FND-V1
+.\.venv\Scripts\Activate.ps1
+python app.py
+```
+
+Retrain the model only when you change the training logic or source dataset:
+
+```powershell
+python train_model.py
+```
+
+## What You Should See
+
+- `GET /` shows the landing page
+- After login, `/dashboard` shows the News API comparison screen
+- `POST /predict` compares entered news against News API results
+- `/health` returns app status
+
 ## Flask Routes
 
 - `GET /` - Show homepage
-- `POST /predict` - Verify text using the AI model and related web coverage
+- `GET /dashboard` - Show the logged-in verification dashboard
+- `GET /login` - Show login page
+- `GET /register` - Show register page
+- `POST /predict` - Compare entered text against News API coverage
+- `POST /feedback` - Submit user feedback
 - `GET /history` - Return saved prediction history
-- `GET /health` - Return `OK`
+- `POST /history/clear` - Clear saved history
+- `POST /report` - Download the PDF report
+- `GET /admin/feedback` - Show the admin feedback panel
+- `GET /health` - Return app status
 
 ## Notes
 
-- A small sample dataset is included in `data/fake_or_real_news.csv` so the project can run locally right away.
-- You can replace the sample dataset with a larger real-world dataset that uses the same columns: `text` and `label`.
+- A small sample source corpus is included in `data/fake_or_real_news.csv`.
+- The training script converts that source corpus into `data/news_api_comparison_dataset.csv`, a support-vs-mismatch dataset used by the comparison model.
 - The database file `database.db` is created automatically when the app runs.
-- The training script now uses better text cleaning, unigram + bigram TF-IDF features, and a balanced Logistic Regression model.
+- The training script now builds comparison features between claim text and evidence text, then trains a balanced Logistic Regression pipeline on those features.
 - If NLTK stopwords are unavailable on first run, the app falls back to a built-in stopword list.
-- For internet validation, create a free API key from NewsAPI and add it to `.env` before starting the Flask app.
-- The final verdict is a stronger combined heuristic, but no automated system can guarantee perfect truth verification for every live news story.
+- News verification depends on a valid `NEWS_API_KEY`. Without it, results will fall back to `NEEDS REVIEW`.
+- Set a real `SECRET_KEY` in `.env` for login session security.
+- Set `ADMIN_EMAILS` in `.env` as a comma-separated list of email addresses that should be allowed into the admin feedback panel.
+- The final verdict reflects how closely the submitted text matches News API coverage. It is not absolute proof of truth.
+- If you change the training code or dataset, run `python train_model.py` again before starting the app.
 
 ## Environment File
 
@@ -97,12 +163,14 @@ Create a file named `.env` in the project root and add:
 
 ```env
 NEWS_API_KEY=your_newsapi_key_here
+SECRET_KEY=replace_with_a_long_random_secret
+ADMIN_EMAILS=admin@example.com,owner@example.com
 ```
 
-You can copy the included `.env.example` file and replace the placeholder value with your real key.
+Example `SECRET_KEY` values can be long random strings generated by a password manager.
 
 ## Example Labels
 
-- `REAL`
-- `FAKE`
-
+- `SUPPORTED`
+- `NEEDS REVIEW`
+- `NOT SUPPORTED`

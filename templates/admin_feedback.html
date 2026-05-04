@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Feedback | AI Fake News Detection{% endblock %}
+
+{% block body %}
+    <div class="page-wrapper">
+        <div class="card admin-card">
+            <div class="topbar">
+                <div>
+                    <p class="eyebrow">Admin Panel</p>
+                    <p class="welcome-text">Feedback review for {{ user.full_name }} ({{ user.email }})</p>
+                </div>
+                <div class="topbar-actions">
+                    <a href="{{ url_for('dashboard') }}" class="button-link secondary-link">Back To Dashboard</a>
+                    <form action="{{ url_for('logout') }}" method="post" class="logout-form">
+                        <button type="submit" class="secondary-btn">Log Out</button>
+                    </form>
+                </div>
+            </div>
+
+            {% include "partials/flash_messages.html" %}
+
+            <div class="header">
+                <h1>User Feedback</h1>
+                <p class="subtitle">
+                    Review submitted feedback messages along with the user name and email that sent them.
+                </p>
+            </div>
+
+            <div class="admin-feedback-list">
+                {% if feedback_items %}
+                    {% for item in feedback_items %}
+                        <article class="admin-feedback-item">
+                            <div class="admin-feedback-head">
+                                <div>
+                                    <h2>{{ item.subject }}</h2>
+                                    <p class="admin-feedback-user">{{ item.full_name }} · {{ item.email }}</p>
+                                </div>
+                                <span class="admin-feedback-date">{{ item.created_at }}</span>
+                            </div>
+                            <p class="admin-feedback-message">{{ item.message }}</p>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-state">No feedback has been submitted yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
